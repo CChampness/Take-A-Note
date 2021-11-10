@@ -3,6 +3,7 @@ let noteText;
 let saveNoteBtn;
 let newNoteBtn;
 let noteList;
+let updating = false;
 
 if (window.location.pathname === '/notes') {
   noteTitle = document.querySelector('.note-title');
@@ -42,6 +43,15 @@ const saveNote = (note) =>
     body: JSON.stringify(note),
   });
 
+const updateNote = (note) =>
+  fetch('/api/notes', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(note),
+  });
+
 const deleteNote = (id) =>
   fetch(`/api/notes/${id}`, {
     method: 'DELETE',
@@ -52,10 +62,15 @@ const deleteNote = (id) =>
 
 const renderActiveNote = () => {
   hide(saveNoteBtn);
-
+// debugger;
   if (activeNote.id) {
     noteTitle.setAttribute('readonly', true);
-    noteText.setAttribute('readonly', true);
+    if (updating) {
+      noteText.removeAttribute('readonly');
+    } else {
+       noteText.setAttribute('readonly', true);
+    }
+
     noteTitle.value = activeNote.title;
     noteText.value = activeNote.text;
   } else {
@@ -70,11 +85,21 @@ const handleNoteSave = () => {
   const newNote = {
     title: noteTitle.value,
     text: noteText.value,
+    id: activeNote.id
   };
-  saveNote(newNote).then(() => {
-    getAndRenderNotes();
-    renderActiveNote();
-  });
+  if (!updating) {
+    saveNote(newNote).then(() => {
+      getAndRenderNotes();
+      renderActiveNote();
+    });
+  } else {
+    updateNote(newNote).then(() => {
+      getAndRenderNotes();
+      activeNote = {};
+      renderActiveNote();
+    });
+    updating = false;
+  }
 };
 
 // Delete the clicked note
@@ -98,14 +123,22 @@ const handleNoteDelete = (e) => {
 // Sets the activeNote and displays it
 const handleNoteView = (e) => {
   e.preventDefault();
+  // debugger;
   activeNote = JSON.parse(e.target.parentElement.getAttribute('data-note'));
   renderActiveNote();
 };
 
-// Sets the activeNote to and empty object and allows the user to enter a new note
+// Sets the activeNote to an empty object and allows the user to enter a new note
 const handleNewNoteView = (e) => {
-  activeNote = {};
-  renderActiveNote();
+//   activeNote = {};
+//   renderActiveNote();
+// };
+e.preventDefault();
+// debugger;
+// activeNote = JSON.parse(e.target.parentElement.getAttribute('data-note'));
+updating = true;
+show(saveNoteBtn);
+renderActiveNote();
 };
 
 const handleRenderSaveBtn = () => {

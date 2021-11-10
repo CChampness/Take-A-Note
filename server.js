@@ -19,40 +19,56 @@ app.get('/', (req, res) =>
 
 // GET Route for notes page
 app.get('/notes', (req, res) => {
-  console.log(__dirname)
     res.sendFile(path.join(__dirname, '/public/notes.html'))
   });
 
 // GET route for loading notes
 app.get("/api/notes/", (req, res) => {
   fs.readFile(path.join(__dirname, "./db/notes.json"), "utf-8", function (err, data) {
-    console.log(err);
     if(err) {
       res.send("File not found");
-      // const data = [{}];
-      // fs.writeFile(path.join(__dirname, "./db/notes.json"), JSON.stringify(data), "utf-8");
-      // res.json({"title": "Nothing", "text": "nothing saved"});
-      // res.send('{"title": "Nothing", "text": "nothing saved"}');
     } else {
-      console.log("data: "+data)
       res.json(JSON.parse(data));
     }
   })
 })
 
-// POST route for updating notes
+// POST route for adding a note
 app.post("/api/notes/", (req, res) => {
   fs.readFile(path.join(__dirname, "./db/notes.json"), "utf-8", function (err, data) {
     if(err) {
       res.send("Could not find file");
     } else {
       data = JSON.parse(data);
-      // const newNote = { title, text, id: uuid() };
-      console.log(req.body);
       const title = req.body.title;
       const text = req.body.text;
       const newNote = { title, text, id: uuid() };
       data.push(newNote);
+      fs.writeFile(path.join(__dirname, "./db/notes.json"), JSON.stringify(data), "utf-8", function (err) {
+        if(err) {
+          res.send("Could not find file");
+        } else {
+          res.send("Success");
+        }
+      })
+    }
+  })
+})
+
+// PUT route for updating  note
+app.put("/api/notes/", (req, res) => {
+  fs.readFile(path.join(__dirname, "./db/notes.json"), "utf-8", function (err, data) {
+    if(err) {
+      res.send("Could not find file");
+    } else {
+      data = JSON.parse(data);
+      const id = req.body.id;
+      const text = req.body.text;
+
+      console.log("id, text: "+id+","+text);
+ 
+      data.forEach(note => {if (note.id && (note.id === id)) {note.text = text; console.log("note.id: "+note.id)}});
+
       fs.writeFile(path.join(__dirname, "./db/notes.json"), JSON.stringify(data), "utf-8", function (err) {
         if(err) {
           res.send("Could not find file");
