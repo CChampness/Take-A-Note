@@ -46,8 +46,6 @@ uid => _id++;
 
 // POST Route for a new note
 notes.post('/', (req, res) => {
-  console.log(req.body);
-
   const { username, note } = req.body;
 
   if (req.body) {

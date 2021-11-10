@@ -22,7 +22,7 @@ app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, '/public/notes.html'))
   });
 
-// GET route for loading notes
+// GET route for loading notes to client
 app.get("/api/notes/", (req, res) => {
   fs.readFile(path.join(__dirname, "./db/notes.json"), "utf-8", function (err, data) {
     if(err) {
@@ -44,6 +44,8 @@ app.post("/api/notes/", (req, res) => {
       const text = req.body.text;
       const newNote = { title, text, id: uuid() };
       data.push(newNote);
+      // writeNotes(data);
+
       fs.writeFile(path.join(__dirname, "./db/notes.json"), JSON.stringify(data), "utf-8", function (err) {
         if(err) {
           res.send("Could not find file");
@@ -64,10 +66,8 @@ app.put("/api/notes/", (req, res) => {
       data = JSON.parse(data);
       const id = req.body.id;
       const text = req.body.text;
-
-      console.log("id, text: "+id+","+text);
- 
-      data.forEach(note => {if (note.id && (note.id === id)) {note.text = text; console.log("note.id: "+note.id)}});
+      data.forEach(note => {if (note.id && (note.id === id)) {note.text = text}});
+      // writeNotes(data);
 
       fs.writeFile(path.join(__dirname, "./db/notes.json"), JSON.stringify(data), "utf-8", function (err) {
         if(err) {
@@ -82,17 +82,16 @@ app.put("/api/notes/", (req, res) => {
 
 // DELETE route for deleting one specific note
 app.delete("/api/notes/:id", (req, res) => {
-  const listOfNotes = readNotes();
-  const updatedNotes = listOfNotes.filter((note) => note.id !== req.params.id);
-  writeNotes(updatedNotes);
+  const allNotes = readNotes();
+  const filteredNotes = allNotes.filter((note) => note.id !== req.params.id);
+  writeNotes(filteredNotes);
   res.json({ok: true});
 });
 
-// GET 404 for anything else
+// GET 404 for anything that we don't have
 app.get('*', (req, res) =>
   res.sendFile(path.join(__dirname, './public/404.html'))
 );
-
 
 function writeNotes(notes) {
   const data = JSON.stringify(notes);

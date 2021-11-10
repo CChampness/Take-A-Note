@@ -85,7 +85,7 @@ const handleNoteSave = () => {
   const newNote = {
     title: noteTitle.value,
     text: noteText.value,
-    id: activeNote.id
+    id: (activeNote ? activeNote.id : 0)
   };
   if (!updating) {
     saveNote(newNote).then(() => {
@@ -109,8 +109,8 @@ const handleNoteDelete = (e) => {
 
   const note = e.target;
   const noteId = JSON.parse(note.parentElement.getAttribute('data-note')).id;
-
-  if (activeNote.id === noteId) {
+// debugger;
+  if (activeNote && activeNote.id && (activeNote.id === noteId)) {
     activeNote = {};
   }
 
@@ -125,7 +125,9 @@ const handleNoteView = (e) => {
   e.preventDefault();
   // debugger;
   activeNote = JSON.parse(e.target.parentElement.getAttribute('data-note'));
-  renderActiveNote();
+  if (activeNote) {
+    renderActiveNote();
+  }
 };
 
 // Sets the activeNote to an empty object and allows the user to enter a new note
@@ -160,6 +162,7 @@ const renderNoteList = async (notes) => {
 
   // Returns HTML element with or without a delete button
   const createLi = (text, delBtn = true) => {
+    // debugger;
     const liEl = document.createElement('li');
     liEl.classList.add('list-group-item');
 
@@ -187,16 +190,25 @@ const renderNoteList = async (notes) => {
     return liEl;
   };
 
-  if (jsonNotes.length === 0) {
+  if (jsonNotes.length === 1) {
     noteListItems.push(createLi('No saved Notes', false));
   }
-
+else {
   jsonNotes.forEach((note) => {
+    // debugger;
     const li = createLi(note.title);
     li.dataset.note = JSON.stringify(note);
-
     noteListItems.push(li);
   });
+}
+  // const li = createLi(jsonNotes[0].title, false);
+  // li.dataset.note = JSON.stringify(jsonNotes[0].note);
+  // noteListItems.push(li);
+  // for (let i = 1; i < jsonNotes.length; i++) {
+  //   const li = createLi(jsonNotes[i].title);
+  //   li.dataset.note = JSON.stringify(jsonNotes[i].note);
+  //   noteListItems.push(li);
+  // };
 
   if (window.location.pathname === '/notes') {
     noteListItems.forEach((note) => noteList[0].append(note));
